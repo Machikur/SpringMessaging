@@ -25,10 +25,7 @@ public class IntegrationConfiguration {
     }
 
     @Bean
-    IntegrationFlow fileReader(
-            FileReadingMessageSource source,
-            JmsTemplate template) {
-
+    IntegrationFlow fileReader(FileReadingMessageSource source, JmsTemplate template) {
         return IntegrationFlows.from(source, spec -> spec.poller(p -> p.fixedRate(1000L)))
                 .<File, byte[]>transform(file -> {
                     try {
@@ -36,7 +33,7 @@ public class IntegrationConfiguration {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    return new byte[0];
+                    throw new RuntimeException("Transform error");
                 })
                 .log(LoggingHandler.Level.INFO, "Information about Files", message -> "Files are sending to server")
                 .handle(Jms.outboundAdapter(template)

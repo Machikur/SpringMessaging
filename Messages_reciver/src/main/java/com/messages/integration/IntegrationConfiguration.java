@@ -1,6 +1,8 @@
 package com.messages.integration;
 
 import com.messages.domain.FileDetails;
+import com.messages.integration.data.FileData;
+import com.messages.integration.data.FileSize;
 import com.messages.integration.transformers.ToFileDetailsTransformer;
 import com.messages.integration.transformers.ToFileTransformer;
 import org.apache.commons.io.FileUtils;
@@ -34,9 +36,8 @@ public class IntegrationConfiguration {
                 .get();
     }
 
-
     @Bean
-    IntegrationFlow adminNotificator(MessageChannel adminChannel, JmsTemplate template) {
+    IntegrationFlow adminNotificator(MessageChannel adminChannel, JmsTemplate template, FileData fileData) {
         return IntegrationFlows.from(adminChannel)
                 .log(LoggingHandler.Level.INFO, "Info", message -> "I'm sending file to administrator")
                 .<File, byte[]>transform(file -> {
@@ -47,8 +48,9 @@ public class IntegrationConfiguration {
                     }
                     return null;
                 })
+                .enrichHeaders(spec -> spec.priority(fileData.getFilePriority(),true))
                 .handle(Jms.outboundAdapter(template)
-                        .destination("to-big-size-files"))
+                        .destination("too-big-size-files"))
                 .get();
     }
 
@@ -62,6 +64,5 @@ public class IntegrationConfiguration {
                         .persistMode(PersistMode.PERSIST), ConsumerEndpointSpec::transactional)
                 .get();
     }
-
 
 }

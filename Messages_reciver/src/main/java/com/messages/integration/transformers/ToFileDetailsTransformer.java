@@ -1,6 +1,7 @@
 package com.messages.integration.transformers;
 
 import com.messages.domain.FileDetails;
+import com.messages.integration.data.FileData;
 import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.stereotype.Component;
 
@@ -12,10 +13,10 @@ import java.io.IOException;
 @Component
 public class ToFileDetailsTransformer implements GenericTransformer<File, FileDetails> {
 
-   private final File operationFile;
+    private final File operationFile;
 
-    public ToFileDetailsTransformer(FilePaths filePaths) {
-        this.operationFile = filePaths.getOperationFile();
+    public ToFileDetailsTransformer(FileData fileData) {
+        this.operationFile = fileData.getOperationFile();
     }
 
     @Override
