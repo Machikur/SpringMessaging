@@ -1,5 +1,6 @@
 package com.messages.integration;
 
+import com.messages.integration.exception.TransformationException;
 import org.apache.commons.io.FileUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +34,7 @@ public class IntegrationConfiguration {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    throw new RuntimeException("Transform error");
+                    throw new TransformationException("Transform error");
                 })
                 .log(LoggingHandler.Level.INFO, "Information about Files", message -> "Files are sending to server")
                 .handle(Jms.outboundAdapter(template)

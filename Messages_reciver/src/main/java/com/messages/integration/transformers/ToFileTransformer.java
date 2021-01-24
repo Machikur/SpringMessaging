@@ -1,6 +1,7 @@
 package com.messages.integration.transformers;
 
 import com.messages.integration.data.FileData;
+import com.messages.integration.exception.TransformationException;
 import org.apache.commons.io.FileUtils;
 import org.springframework.integration.transformer.GenericTransformer;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,7 @@ public class ToFileTransformer implements GenericTransformer<byte[], File> {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return null;
+        throw new TransformationException("Transformation Error");
     }
 
 

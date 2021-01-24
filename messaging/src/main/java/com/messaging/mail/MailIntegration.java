@@ -1,55 +1,44 @@
-package com.messaging;
+package com.messaging.mail;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.dsl.Pollers;
-import org.springframework.integration.file.FileReadingMessageSource;
-import org.springframework.integration.file.dsl.Files;
 import org.springframework.integration.handler.LoggingHandler;
 import org.springframework.integration.mail.dsl.Mail;
+import org.springframework.messaging.MessageChannel;
 
-import java.io.File;
-
+@Configuration
+@RequiredArgsConstructor
 public class MailIntegration {
 
-    @Value("${admin.mail}")
-    private String adminMail;
-
-    @Value("${MAIL_USERNAME}")
-    private String userName;
-
-    @Value("${MAIL_PASSWORD}")
-    private String password;
-
-    @Value("${file.directory}")
-    private String directory;
+    private final AdminDetails adminDetails;
 
     @Bean
-    IntegrationFlow sendEmailToAdmin(FileReadingMessageSource source) {
-        return IntegrationFlows.from(source, spec -> spec.poller(Pollers.fixedRate(1000L)))
+    IntegrationFlow sendEmailToAdmin(MessageChannel mailChannel,FileNamesToMessageTransformer transformer) {
+        return IntegrationFlows.from(mailChannel)
                 .log(LoggingHandler.Level.INFO, "Info", m -> "I'm sending email to admin")
-                .transform(Files.toStringTransformer(true))
+                .transform(transformer)
                 .enrichHeaders(Mail.headers()
-                        .to(adminMail)
+                        .to(adminDetails.getAdminMail())
                         .subject("notification")
                         .from("messagingApp"))
                 .handle(Mail.outboundAdapter("smtp.gmail.com")
                         .javaMailProperties(propertiesBuilder -> propertiesBuilder
                                 .put("mail.smtp.starttls.enable", "true")
                                 .put("mail.smtp.auth", "true"))
-                        .credentials(userName, password)
+                        .credentials(adminDetails.getUserName(), adminDetails.getPassword())
                         .port(587)
                         .protocol("smtp"))
                 .get();
     }
 
     @Bean
-    FileReadingMessageSource source() {
-        FileReadingMessageSource source = new FileReadingMessageSource();
-        source.setDirectory(new File(directory));
-        return source;
+    MessageChannel mailChannel() {
+        return new DirectChannel();
     }
 
 }

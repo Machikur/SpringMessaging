@@ -3,6 +3,7 @@ package com.messages.integration;
 import com.messages.domain.FileDetails;
 import com.messages.integration.data.FileData;
 import com.messages.integration.data.FileSize;
+import com.messages.integration.exception.TransformationException;
 import com.messages.integration.transformers.ToFileDetailsTransformer;
 import com.messages.integration.transformers.ToFileTransformer;
 import org.apache.commons.io.FileUtils;
@@ -46,7 +47,7 @@ public class IntegrationConfiguration {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    return null;
+                    throw new TransformationException("Transform error");
                 })
                 .enrichHeaders(spec -> spec.priority(fileData.getFilePriority(),true))
                 .handle(Jms.outboundAdapter(template)
